@@ -3,180 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Сапер (Minesweeper) — Практична робота №1 (HTML5 &amp; CSS3)</title>
+  <title>Сапер (Minesweeper) — Практична робота №2 (JavaScript &amp; DOM)</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="app-container">
-    <section class="minesweeper-card" aria-label="Ігровий інтерфейс гри Сапер">
-      <!-- Заголовок вікна та вибір рівня складності -->
+    <section class="minesweeper-card" aria-label="Інтерактивна гра Сапер на JavaScript">
       <div class="window-topbar">
         <div class="window-title">
-          <span class="window-title__icon" aria-hidden="true">💣</span>
-          <h1 class="window-title__text">Сапер (Minesweeper UI)</h1>
+          <span class="window-title__icon">💣</span>
+          <h1 class="window-title__text">Сапер — JavaScript &amp; DOM</h1>
         </div>
-        <nav class="difficulty-nav" aria-label="Рівень складності">
-          <button type="button" class="difficulty-nav__btn difficulty-nav__btn--active">Початковий 9×9</button>
-          <button type="button" class="difficulty-nav__btn">Середній 16×16</button>
-          <button type="button" class="difficulty-nav__btn">Експерт 30×16</button>
-        </nav>
+        <div class="controls-bar">
+          <label for="difficulty-select" class="controls-bar__label">Складність:</label>
+          <select id="difficulty-select" class="controls-bar__select" aria-label="Вибір складності">
+            <option value="beginner">Початковий (9×9, 10 мін)</option>
+            <option value="standard" selected>Стандартний (10×10, 15 мін)</option>
+            <option value="intermediate">Середній (16×16, 40 мін)</option>
+          </select>
+          <button type="button" id="new-game-btn" class="controls-bar__btn">Нова гра</button>
+        </div>
       </div>
 
-      <!-- Хедер гри: лічильник мін/прапорців, кнопка рестарту, таймер -->
-      <header class="game-header" aria-label="Панель стану гри">
-        <div class="digital-display" title="Залишилось мін (прапорців)" aria-label="Лічильник мін">
-          <span class="digital-display__label">МІНИ</span>
-          <span class="digital-display__digits">010</span>
+      <header class="game-header">
+        <div class="digital-display" title="Залишилось прапорців">
+          <span class="digital-display__label">ПРАПОРЦІ</span>
+          <span id="flags-counter" class="digital-display__digits">015</span>
         </div>
 
-        <button type="button" class="restart-btn" title="Почати нову гру" aria-label="Почати нову гру">
-          <span class="restart-btn__emoji" role="img" aria-label="Статус гри">😊</span>
+        <button type="button" id="restart-btn" class="restart-btn" title="Перезапустити гру">
+          <span id="status-emoji" class="restart-btn__emoji">😊</span>
         </button>
 
-        <div class="digital-display" title="Час гри у секундах" aria-label="Таймер гри">
+        <div class="digital-display" title="Час гри у секундах">
           <span class="digital-display__label">ЧАС</span>
-          <span class="digital-display__digits">045</span>
+          <span id="timer-display" class="digital-display__digits">000</span>
         </div>
       </header>
 
-      <!-- Ігрове поле 9x9 з демонстрацією всіх можливих станів клітинок -->
-      <section class="board-wrapper" aria-label="Ігрове поле 9 на 9">
-        <div class="game-board" role="grid" aria-label="Сітка Сапера 9 на 9">
-          <!-- Рядок 1 -->
-          <div class="cell cell--opened cell--empty" role="gridcell" aria-label="Відкрита порожня клітинка"></div>
-          <div class="cell cell--opened cell--empty" role="gridcell" aria-label="Відкрита порожня клітинка"></div>
-          <div class="cell cell--opened cell--num-1" role="gridcell" aria-label="Цифра 1">1</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0" aria-label="Закрита клітинка"></div>
-          <div class="cell cell--flagged" role="gridcell" aria-label="Клітинка з прапорцем">🚩</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0" aria-label="Закрита клітинка"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0" aria-label="Закрита клітинка"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0" aria-label="Закрита клітинка"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0" aria-label="Закрита клітинка"></div>
+      <div id="status-banner" class="status-banner status-banner--process" role="status" aria-live="polite">
+        Статус: У процесі гри — зробіть перший хід (перший клік завжди безпечний)
+      </div>
 
-          <!-- Рядок 2 -->
-          <div class="cell cell--opened cell--empty" role="gridcell"></div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--flagged" role="gridcell" aria-label="Клітинка з прапорцем">🚩</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-
-          <!-- Рядок 3 -->
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--flagged" role="gridcell" aria-label="Прапорець на міні">🚩</div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--opened cell--empty" role="gridcell"></div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-
-          <!-- Рядок 4 -->
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--opened cell--num-3" role="gridcell">3</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--opened cell--empty" role="gridcell"></div>
-          <div class="cell cell--opened cell--empty" role="gridcell"></div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-
-          <!-- Рядок 5 -->
-          <div class="cell cell--flagged" role="gridcell" aria-label="Клітинка з прапорцем">🚩</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--opened cell--empty" role="gridcell"></div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--mine" role="gridcell" aria-label="Відкрита міна">💣</div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--opened cell--empty" role="gridcell"></div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-
-          <!-- Рядок 6 -->
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--opened cell--num-3" role="gridcell">3</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-
-          <!-- Рядок 7 -->
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--mine-exploded" role="gridcell" aria-label="Підірвана міна">💥</div>
-          <div class="cell cell--opened cell--num-4" role="gridcell">4</div>
-          <div class="cell cell--flagged cell--flag-wrong" role="gridcell" title="Хибний прапорець" aria-label="Хибний прапорець">🚩</div>
-          <div class="cell cell--opened cell--num-1" role="gridcell">1</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-
-          <!-- Рядок 8 -->
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--opened cell--num-3" role="gridcell">3</div>
-          <div class="cell cell--mine" role="gridcell" aria-label="Звичайна міна">💣</div>
-          <div class="cell cell--opened cell--num-2" role="gridcell">2</div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-
-          <!-- Рядок 9 -->
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-          <div class="cell cell--closed" role="gridcell" tabindex="0"></div>
-        </div>
+      <section class="board-wrapper">
+        <div id="game-board" class="game-board" role="grid" aria-label="Ігрове поле Сапера"></div>
       </section>
-
-      <!-- Довідкова легенда станів клітинок -->
-      <footer class="state-legend" aria-label="Легенда станів клітинок">
-        <h2 class="state-legend__title">Демонстрація станів клітинок UI:</h2>
-        <div class="state-legend__items">
-          <div class="legend-item">
-            <span class="cell cell--closed cell--mini"></span>
-            <span class="legend-item__text">Закрита</span>
-          </div>
-          <div class="legend-item">
-            <span class="cell cell--opened cell--empty cell--mini"></span>
-            <span class="legend-item__text">Відкрита порожня</span>
-          </div>
-          <div class="legend-item">
-            <span class="cell cell--opened cell--num-1 cell--mini">1</span>
-            <span class="cell cell--opened cell--num-2 cell--mini">2</span>
-            <span class="cell cell--opened cell--num-3 cell--mini">3</span>
-            <span class="cell cell--opened cell--num-4 cell--mini">4</span>
-            <span class="legend-item__text">Числа (1–4)</span>
-          </div>
-          <div class="legend-item">
-            <span class="cell cell--flagged cell--mini">🚩</span>
-            <span class="legend-item__text">Прапорець</span>
-          </div>
-          <div class="legend-item">
-            <span class="cell cell--mine cell--mini">💣</span>
-            <span class="legend-item__text">Міна</span>
-          </div>
-          <div class="legend-item">
-            <span class="cell cell--mine-exploded cell--mini">💥</span>
-            <span class="legend-item__text">Підрив</span>
-          </div>
-        </div>
-      </footer>
     </section>
   </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
