@@ -1,0 +1,383 @@
+/* ==========================================================================
+   Практична робота №1: Дизайн та реалізація елементів UI у HTML та CSS
+   Гра «Сапер» (Minesweeper) — Методологія BEM, Flexbox & CSS Grid
+   ========================================================================== */
+
+:root {
+  --bg-page: #0f172a;
+  --bg-card: #cfd8dc;
+  --bg-panel: #b0bec5;
+  --border-light: #ffffff;
+  --border-dark: #607d8b;
+  --border-darker: #37474f;
+
+  --cell-size: 42px;
+  --cell-closed-bg: #cfd8dc;
+  --cell-closed-hover: #dce4e8;
+  --cell-opened-bg: #e2e8f0;
+  --cell-opened-border: #94a3b8;
+
+  --digital-bg: #111827;
+  --digital-red: #ef4444;
+
+  /* Кольорове кодування чисел сусідніх мін */
+  --num-1-color: #1d4ed8; /* Синій */
+  --num-2-color: #15803d; /* Зелений */
+  --num-3-color: #dc2626; /* Червоний */
+  --num-4-color: #6d28d9; /* Фіолетовий */
+  --num-5-color: #991b1b; /* Бордовий */
+  --num-6-color: #0f766e; /* Бірюзовий */
+
+  --mine-exploded-bg: #ef4444;
+  --flag-wrong-bg: #fecaca;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Основний корпус ігрового вікна з класичним 3D-рельєфом та сучасними тінями */
+.minesweeper-card {
+  background-color: var(--bg-card);
+  border-top: 4px solid var(--border-light);
+  border-left: 4px solid var(--border-light);
+  border-right: 4px solid var(--border-darker);
+  border-bottom: 4px solid var(--border-darker);
+  border-radius: 6px;
+  padding: 14px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
+}
+
+/* Верхня панель заголовка та перемикача складності */
+.window-topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.window-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 100%);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.window-title__icon {
+  font-size: 18px;
+}
+
+.window-title__text {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.difficulty-nav {
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+}
+
+.difficulty-nav__btn {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--cell-closed-bg);
+  color: #1e293b;
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-darker);
+  border-bottom: 2px solid var(--border-darker);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.difficulty-nav__btn:hover {
+  background-color: var(--cell-closed-hover);
+}
+
+.difficulty-nav__btn--active {
+  background-color: #dbeafe;
+  color: #1e3a8a;
+  border-top: 2px solid var(--border-darker);
+  border-left: 2px solid var(--border-darker);
+  border-right: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--border-light);
+}
+
+/* Панель хедера гри (Flexbox) */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  background-color: var(--bg-panel);
+  border-top: 3px solid var(--border-dark);
+  border-left: 3px solid var(--border-dark);
+  border-right: 3px solid var(--border-light);
+  border-bottom: 3px solid var(--border-light);
+}
+
+/* Цифрові індикатори таймера та лічильника прапорців */
+.digital-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--digital-bg);
+  border: 2px inset #475569;
+  padding: 4px 10px;
+  min-width: 86px;
+  border-radius: 3px;
+}
+
+.digital-display__label {
+  font-size: 9px;
+  color: #94a3b8;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+}
+
+.digital-display__digits {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--digital-red);
+  letter-spacing: 3px;
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.55);
+}
+
+/* Кнопка старту / рестарту */
+.restart-btn {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--cell-closed-bg);
+  border-top: 3px solid var(--border-light);
+  border-left: 3px solid var(--border-light);
+  border-right: 3px solid var(--border-darker);
+  border-bottom: 3px solid var(--border-darker);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.08s ease, background-color 0.15s ease;
+}
+
+.restart-btn:hover {
+  background-color: var(--cell-closed-hover);
+}
+
+.restart-btn:active {
+  border-top: 3px solid var(--border-darker);
+  border-left: 3px solid var(--border-darker);
+  border-right: 3px solid var(--border-light);
+  border-bottom: 3px solid var(--border-light);
+  transform: translateY(1px);
+}
+
+.restart-btn__emoji {
+  font-size: 26px;
+  line-height: 1;
+}
+
+/* Контейнер та сітка ігрового поля (CSS Grid 9x9) */
+.board-wrapper {
+  padding: 6px;
+  background-color: var(--bg-panel);
+  border-top: 3px solid var(--border-dark);
+  border-left: 3px solid var(--border-dark);
+  border-right: 3px solid var(--border-light);
+  border-bottom: 3px solid var(--border-light);
+  display: flex;
+  justify-content: center;
+}
+
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(9, var(--cell-size));
+  grid-template-rows: repeat(9, var(--cell-size));
+  gap: 0;
+  background-color: var(--border-dark);
+  user-select: none;
+}
+
+/* Базовий елемент клітинки */
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  position: relative;
+}
+
+/* 1. Стан: Закрита клітинка (3D-кнопка) */
+.cell--closed {
+  background-color: var(--cell-closed-bg);
+  border-top: 3px solid var(--border-light);
+  border-left: 3px solid var(--border-light);
+  border-right: 3px solid var(--border-darker);
+  border-bottom: 3px solid var(--border-darker);
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.cell--closed:hover {
+  background-color: var(--cell-closed-hover);
+}
+
+.cell--closed:active {
+  border: 1px solid var(--cell-opened-border);
+  background-color: var(--cell-opened-bg);
+}
+
+/* 2. Стан: Відкрита клітинка */
+.cell--opened {
+  background-color: var(--cell-opened-bg);
+  border: 1px solid var(--cell-opened-border);
+  cursor: default;
+}
+
+.cell--empty {
+  background-color: #e5e7eb;
+}
+
+/* 3. Стан: Відкриті клітинки з цифрами 1..4 */
+.cell--num-1 { color: var(--num-1-color); }
+.cell--num-2 { color: var(--num-2-color); }
+.cell--num-3 { color: var(--num-3-color); }
+.cell--num-4 { color: var(--num-4-color); }
+.cell--num-5 { color: var(--num-5-color); }
+.cell--num-6 { color: var(--num-6-color); }
+
+/* 4. Стан: Клітинка з прапорцем (звичайна та хибна) */
+.cell--flagged {
+  background-color: var(--cell-closed-bg);
+  border-top: 3px solid var(--border-light);
+  border-left: 3px solid var(--border-light);
+  border-right: 3px solid var(--border-darker);
+  border-bottom: 3px solid var(--border-darker);
+  font-size: 19px;
+  cursor: pointer;
+}
+
+.cell--flag-wrong {
+  background-color: var(--flag-wrong-bg);
+  border: 1px solid #ef4444;
+}
+
+.cell--flag-wrong::after {
+  content: "✕";
+  position: absolute;
+  color: #b91c1c;
+  font-size: 24px;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+/* 5. Стан: Клітинка з міною (звичайна відкрита та підірвана) */
+.cell--mine {
+  background-color: #cbd5e1;
+  border: 1px solid var(--cell-opened-border);
+  font-size: 20px;
+}
+
+.cell--mine-exploded {
+  background-color: var(--mine-exploded-bg);
+  border: 1px solid #991b1b;
+  font-size: 21px;
+  animation: pulse-explosion 1.4s infinite ease-in-out;
+}
+
+@keyframes pulse-explosion {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.18); }
+}
+
+/* Нижня довідкова панель легенди станів */
+.state-legend {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background-color: #e2e8f0;
+  border: 1px solid #94a3b8;
+  border-radius: 4px;
+}
+
+.state-legend__title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #1e293b;
+}
+
+.state-legend__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cell--mini {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+}
+
+.legend-item__text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Адаптивність для мобільних екранів */
+@media (max-width: 480px) {
+  :root {
+    --cell-size: 33px;
+  }
+
+  body {
+    padding: 10px;
+  }
+
+  .difficulty-nav {
+    flex-direction: column;
+  }
+
+  .digital-display__digits {
+    font-size: 20px;
+  }
+}
