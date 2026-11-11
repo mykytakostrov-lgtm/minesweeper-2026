@@ -257,3 +257,139 @@ function stopTimer() {
     gameState.timerId = null;
   }
 }
+
+// ============================================================================
+// КРОК 5 та КРОК 6. Рендеринг ігрового поля та оновлення DOM
+// ============================================================================
+const boardElement = document.getElementById('game-board');
+const flagsCounterEl = document.getElementById('flags-counter');
+const timerDisplayEl = document.getElementById('timer-display');
+const statusEmojiEl = document.getElementById('status-emoji');
+const statusBannerEl = document.getElementById('status-banner');
+const restartBtn = document.getElementById('restart-btn');
+const newGameBtn = document.getElementById('new-game-btn');
+const difficultySelect = document.getElementById('difficulty-select');
+
+function formatThreeDigits(num) {
+  const clamped = Math.max(-99, Math.min(999, num));
+  return clamped < 0
+    ? '-' + String(Math.abs(clamped)).padStart(2, '0')
+    : String(clamped).padStart(3, '0');
+}
+
+function updateHeaderDisplays() {
+  const remainingFlags = gameState.minesCount - gameState.flagsPlaced;
+  flagsCounterEl.textContent = formatThreeDigits(remainingFlags);
+  timerDisplayEl.textContent = formatThreeDigits(gameState.gameTime);
+
+  if (gameState.status === 'win') {
+    statusEmojiEl.textContent = '😎';
+    statusBannerEl.textContent = `Перемога! Ви успішно розмінували поле за ${gameState.gameTime} с!`;
+    statusBannerEl.className = 'status-banner status-banner--win';
+  } else if (gameState.status === 'lose') {
+    statusEmojiEl.textContent = '😵';
+    statusBannerEl.textContent = 'Поразка! Ви натрапили на міну. Натисніть «Нова гра» або смайлик для повтору.';
+    statusBannerEl.className = 'status-banner status-banner--lose';
+  } else {
+    statusEmojiEl.textContent = '😊';
+    statusBannerEl.textContent = gameState.firstClickDone
+      ? 'Статус: Гра триває — відкривайте безпечні клітинки'
+      : 'Статус: У процесі гри — зробіть перший хід (перший клік завжди безпечний)';
+    statusBannerEl.className = 'status-banner status-banner--process';
+  }
+}
+
+function renderBoard() {
+  boardElement.innerHTML = '';
+  boardElement.style.gridTemplateColumns = `repeat(${gameState.cols}, var(--cell-size))`;
+  boardElement.style.gridTemplateRows = `repeat(${gameState.rows}, var(--cell-size))`;
+
+  const fragment = document.createDocumentFragment();
+
+  for (let r = 0; r < gameState.rows; r++) {
+    for (let c = 0; c < gameState.cols; c++) {
+      const cellData = gameState.board[r][c];
+      const cellDiv = document.createElement('div');
+      cellDiv.classList.add('cell');
+      cellDiv.dataset.row = String(r);
+      cellDiv.dataset.col = String(c);
+      cellDiv.setAttribute('role', 'gridcell');
+
+      if (cellData.state === 'closed') {
+        cellDiv.classList.add('cell--closed');
+      } else if (cellData.state === 'flagged') {
+        cellDiv.classList.add('cell--flagged');
+        cellDiv.textContent = '🚩';
+      } else if (cellData.state === 'opened') {
+        if (cellData.type === 'mine') {
+          if (cellData.exploded) {
+            cellDiv.classList.add('cell--mine-exploded');
+            cellDiv.textContent = '💥';
+          } else {
+            cellDiv.classList.add('cell--mine');
+            cellDiv.textContent = '💣';
+          }
+        } else {
+          cellDiv.classList.add('cell--opened');
+          if (cellData.neighborMines > 0) {
+            cellDiv.classList.add(`cell--num-${cellData.neighborMines}`);
+            cellDiv.textContent = String(cellData.neighborMines);
+          }
+        }
+      }
+
+      fragment.appendChild(cellDiv);
+    }
+  }
+
+  boardElement.appendChild(fragment);
+}
+
+function updateUI() {
+  updateHeaderDisplays();
+  renderBoard();
+}
+
+// ============================================================================
+// КРОК 7. Обробка подій користувача (Event Delegation)
+// ============================================================================
+boardElement.addEventListener('click', (event) => {
+  const target = event.target.closest('.cell');
+  if (!target) return;
+  const row = Number(target.dataset.row);
+  const col = Number(target.dataset.col);
+  openCell(row, col);
+});
+
+boardElement.addEventListener('contextmenu', (event) => {
+  event.preventDefault(); // Блокуємо стандартне контекстне меню браузера
+  const target = event.target.closest('.cell');
+  if (!target) return;
+  const row = Number(target.dataset.row);
+  const col = Number(target.dataset.col);
+  toggleFlag(row, col);
+});
+
+function initNewGame() {
+  const presetKey = difficultySelect.value;
+  const preset = DIFFICULTY_PRESETS[presetKey] || DIFFICULTY_PRESETS.standard;
+
+  stopTimer();
+  gameState.rows = preset.rows;
+  gameState.cols = preset.cols;
+  gameState.minesCount = preset.minesCount;
+  gameState.status = 'process';
+  gameState.gameTime = 0;
+  gameState.flagsPlaced = 0;
+  gameState.firstClickDone = false;
+  gameState.board = createEmptyBoard(preset.rows, preset.cols);
+
+  updateUI();
+}
+
+restartBtn.addEventListener('click', initNewGame);
+newGameBtn.addEventListener('click', initNewGame);
+difficultySelect.addEventListener('change', initNewGame);
+
+// Ініціалізація при завантаженні сторінки
+document.addEventListener('DOMContentLoaded', initNewGame);
